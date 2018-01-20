@@ -4,28 +4,37 @@ set.seed(50)
 require(Cubist)
 require(caret)
 
-cars.mpg <- read.csv("C:/Users/johnb/Documents/Code Projects/Github/carsmpg.csv")
+cars.mpg <- read.csv("C:/Users/johnb/Documents/Code Projects/Github/carsmpg.csv", stringsAsFactors = FALSE)
 cars.mpg$carname <- gsub("\"", "", cars.mpg$carname)
 
 head(cars.mpg)
 
+###PREPROCESSING: make sure data is in correct data types for model
+###there's certain parameters that we'd like to have as factors, rather than numeric
+###in addition, there's a few missing values listed as "?" under cars.mpg$horsepower.
 
+rows.to.delete <- which(cars.mpg$horsepower == "?")
+tot.rows <- nrow(cars.mpg)
+
+print(paste("We are looking to get rid of", length(rows.to.delete), "rows of", tot.rows, "total rows."))
+
+###6 << 398. we can probably get rid of these without significantly effecting the analysis
+
+cars.mpg <- cars.mpg[-rows.to.delete,]
+###lapply gives the results we want in order to check the classes
+lapply(cars.mpg, class)
+
+###at this point, it makes sense to have horsepower as a numeric, cylinders as a factor, and origin as a factor
+cars.mpg[["cylinders"]] <- as.factor(cars.mpg[["cylinders"]])
+cars.mpg[["origin"]] <- as.factor(cars.mpg[["origin"]])
+cars.mpg[["horsepower"]] <- as.numeric(cars.mpg[["horsepower"]])
+###car name doesn't really make sense to have as a predictor, unless we break the strings into discrete manufacturers
+###given that this is an example, I just won't bother with it
 cars.mpg$carname <- NULL
 
-###take out mpg, carname
+lapply(cars.mpg, class)
+###take out mpg for predictors
 predictors <- colnames(cars.mpg)[-1]
-predictors <- predictors[-length(predictors)]
-
-###set correct data types for variables-> all as characters when read from csv
-cars.mpg$mpg <- as.numeric(cars.mpg$mpg)
-cars.mpg$cylinders <- as.factor(cars.mpg$cylinders)
-cars.mpg$displacement <- as.numeric(cars.mpg$displacement)
-cars.mpg$horsepower <- as.numeric(cars.mpg$horsepower)
-cars.mpg$weight <- as.numeric(cars.mpg$weight)
-cars.mpg$acceleration <- as.numeric(cars.mpg$acceleration)
-cars.mpg$modelyear <- as.factor(cars.mpg$modelyear)
-cars.mpg$origin <- as.factor(cars.mpg$origin)
-
 
 ###separate into train/test
 intrain <- createDataPartition(cars.mpg$mpg, times = 1, p = 0.65)$Resample1
@@ -34,7 +43,7 @@ intest <- c(1:nrow(cars.mpg))[-intrain]
 traindata <- cars.mpg[intrain,]
 testdata <- cars.mpg[intest,]
 
-model <- cubist(x = traindata[,predictors], y = traindata$mpg, committees = 5)
+model <- cubist(x = traindata[,predictors], y = traindata$mpg, committees =10)
 
 
 ##make predictions on test data

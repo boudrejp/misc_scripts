@@ -6,7 +6,7 @@
 require(Cubist)
 require(dprep)
 
-find.cubist.outliers <- function(cubist.model, prediction.data){
+find.cubist.outliers <- function(cubist.model, prediction.data, predictors){
   ###step 0: basic error catching
   if(class(cubist.model) != "cubist"){
     stop("Must input cubist model")
@@ -14,7 +14,7 @@ find.cubist.outliers <- function(cubist.model, prediction.data){
   if(class(prediction.data) != "data.frame"){
     stop("input data must be data frame")
   }
-  if(colnames(prediction.data) != cubist.model$vars$all){
+  if(!all(predictors == cubist.model$vars$all)){
     stop("prediction data names do not match cubist parameters")
   }
   
@@ -24,9 +24,9 @@ find.cubist.outliers <- function(cubist.model, prediction.data){
   all.data <- t(as.data.frame(all.data))
   rownames(all.data) <- NULL
   
-  ###the first column is the y value. we should drop it, not useful
+  ###the first column is the y value. we should drop it, not useful for what we're doing here
   all.data <- all.data[,c(2:ncol(all.data))]
-  colnames(all.data) <- cubist.model$vars$all
+  colnames(all.data) <- predictors
   
   ###we have now reconstructed the training data in all.data df
   ###now we move on to classifying the predictions as type 1, 2, or 3
