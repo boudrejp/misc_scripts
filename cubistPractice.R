@@ -37,7 +37,7 @@ lapply(cars.mpg, class)
 predictors <- colnames(cars.mpg)[-1]
 
 ###separate into train/test
-intrain <- createDataPartition(cars.mpg$mpg, times = 1, p = 0.65)$Resample1
+intrain <- createDataPartition(cars.mpg$mpg, times = 1, p = 0.5)$Resample1
 intest <- c(1:nrow(cars.mpg))[-intrain]
 
 traindata <- cars.mpg[intrain,]

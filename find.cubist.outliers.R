@@ -25,10 +25,14 @@ find.cubist.outliers <- function(cubist.model, prediction.data, predictors){
   rownames(all.data) <- NULL
   
   ###the first column is the y value. we should drop it, not useful for what we're doing here
-  all.data <- all.data[,c(2:ncol(all.data))]
+  all.data <- as.data.frame(all.data[,c(2:ncol(all.data))])
   colnames(all.data) <- predictors
   
-  ###we have now reconstructed the training data in all.data df
+  ###we have now reconstructed the training data in all.data df, let's duplicate the class of the triaining data
+  for(name in predictors){
+    class(all.data[[name]]) <- class(prediction.data[[name]])
+  }
+  
   ###now we move on to classifying the predictions as type 1, 2, or 3
   ###type 1: data is outside of MIN/MAX of training data-> data is an extrapolation. Lower confidence
   ###type 2: data is an outlier from multivariate perspective. look at something like knn distance
@@ -49,21 +53,25 @@ find.cubist.outliers <- function(cubist.model, prediction.data, predictors){
       if(class(prediction.data[i,j]) == "factor"){
         ###make sure that the i'th entry is a factor included in training set
         if(!(prediction.data[i,j] %in% unique(all.data[[j]]))){
-          out.vect[i] <- "class"
+          out.vect[i] <- 2
           break
         }
       }
       if(class(prediction.data[i,j]) == "numeric"){
         ###make sure that the i'th entry is within range of training set
         if(prediction.data[i,j] > mins[j] | prediction.data[i,j] < maxs[j]){
-          out.vect[i] <- "number"
+          out.vect[i] <- 2
           break
         }
       }
     }
   }
   
+  ###now, we check for dimensional outliers
   
   
+  
+  ###return our vector
+  return(out.vect)
   
 }
